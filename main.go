@@ -5,8 +5,8 @@ import (
     "fmt"
     "log"
     "net/http"
-    "github.com/ponta10/go_todo_api/handlers"
-    "github.com/ponta10/go_todo_api/models"
+    "go_todo_api/handler"
+    "go_todo_api/models"
     "github.com/gorilla/mux"
     _ "github.com/go-sql-driver/mysql"
 )

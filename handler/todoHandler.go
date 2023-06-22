@@ -3,7 +3,7 @@ package handlers
 import (
     "encoding/json"
     "net/http"
-    "github.com/ponta10/go_todo_api/refact/models" // <- Replace with your project's path
+    "go_todo_api/models" // <- Replace with your project's path
 )
 
 type TodoHandler struct {
