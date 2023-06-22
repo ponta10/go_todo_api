@@ -58,36 +58,39 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(todos)
 }
 
+// w: レスポンス, r: リクエストヘッダ
 func createTodo(w http.ResponseWriter, r *http.Request) {
+    // Json形式で返す
     w.Header().Set("Content-Type", "application/json")
 
+    // Todo構造体でtodoを定義
+    // ここでは{0, 空文字}の初期値が入っている
     var todo Todo
 
+    // リクエストボディのJSONをtodoの構造体の型式に変換
+    // ここでは{0, タスク}と送られてきたtaskが入る
     err := json.NewDecoder(r.Body).Decode(&todo)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
 
-    stmt, err := db.Prepare("INSERT INTO todos (task) VALUES (?)")
+    // todoに格納されたTaskをtososテーブルに挿入
+    res, err := db.Exec("INSERT INTO todos (task) VALUES (?)", todo.Task)
     if err != nil {
         panic(err.Error())
     }
-
-    res, err := stmt.Exec(todo.Task)
-    if err != nil {
-        panic(err.Error())
-    }
-
+    
+    // 前のINSERT操作で新たに追加された行のIDを取得し、idに入れる
     id, err := res.LastInsertId()
     if err != nil {
         panic(err.Error())
     }
 
+    // todoのIDに先ほどのidを入れる
     todo.ID = int(id)
 
-    fmt.Println(todo)
-
+    // Jsonコードに変換して返却
     json.NewEncoder(w).Encode(todo)
 }
 
