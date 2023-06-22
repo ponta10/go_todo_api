@@ -2,157 +2,29 @@ package main
 
 import (
     "database/sql"
-    "encoding/json"
     "fmt"
     "log"
     "net/http"
-    // HTTPリクエストを適切なハンドラ関数にルーティングする
+    "github.com/ponta10/go_todo_api/handlers"
+    "github.com/ponta10/go_todo_api/models"
     "github.com/gorilla/mux"
-    // importの前の_は、このパッケージの公開関数や変数を直接使用しないが、そのパッケージ内での初期化処理が必要なためにimportしていることを示しています。
     _ "github.com/go-sql-driver/mysql"
 )
 
-type Todo struct {
-    ID    int    `json:"id"`
-    Task  string `json:"task"`
-}
-
-var db *sql.DB
-var err error
-
 func main() {
-    // dbとの接続
-    db, err = sql.Open("mysql", "user:userpassword@tcp(localhost:3306)/todo_db")
+    db, err := sql.Open("mysql", "user:userpassword@tcp(localhost:3306)/todo_db")
     if err != nil {
         log.Fatal(err)
     }
     defer db.Close()
 
-    // ルーティングの新しいインスタンスを作成
-    // 特定のURLパターンに基づいてリクエストをハンドラ関数にルーティングするルールを設定します。
-    router := mux.NewRouter()
+    todoModel := models.NewTodoModel(db)
+    todoHandler := handlers.NewTodoHandler(todoModel)
 
-    // GETリクエストのURLが "/todos" である場合、getTodos 関数を呼び出してリクエストを処理します
-    router.HandleFunc("/todos", getTodos).Methods("GET")
-    // POSTリクエストのURLが "/todos" である場合、 createTodos 関数を呼び出す
-    router.HandleFunc("/todos", createTodo).Methods("POST")
-    
+    router := mux.NewRouter()
+    router.HandleFunc("/todos", todoHandler.GetTodos).Methods("GET")
+    router.HandleFunc("/todos", todoHandler.CreateTodo).Methods("POST")
+
     fmt.Println("Server starting at :8080")
-    // サーバーが何らかの理由で停止した場合にエラーを返します。
-    // log.Fatalは、引数として与えられたエラーをログに出力し、その後プログラムを終了（os.Exit(1)）します。
     log.Fatal(http.ListenAndServe(":8080", router))
 }
-
-func getTodos(w http.ResponseWriter, r *http.Request) {
-    // Json形式で返す
-    w.Header().Set("Content-Type", "application/json")
-
-    // tososをTodo構造体をスライスで返す
-    var todos []Todo
-
-    //　resultに全件格納
-    result, err := db.Query("SELECT id, task FROM todos")
-    if err != nil {
-        panic(err.Error())
-    }
-
-    // closeするのはDB取得した値の保持に使うのメモリの解放
-    defer result.Close()
-
-    // Nextはresultの行が終わるまで繰り返す→forEach的な
-    for result.Next() {
-        // 構造体Todoの変数todoを定義　現在の行のデータを一時的に保存する
-        var todo Todo
-        err := result.Scan(&todo.ID, &todo.Task)
-        if err != nil {
-            panic(err.Error())
-        }
-        // todoをtodosに追加
-        todos = append(todos, todo)
-    }
-
-    // Jsonコードに変換して返却
-    json.NewEncoder(w).Encode(todos)
-}
-
-// w: レスポンス, r: リクエストヘッダ
-func createTodo(w http.ResponseWriter, r *http.Request) {
-    // Json形式で返す
-    w.Header().Set("Content-Type", "application/json")
-
-    // Todo構造体でtodoを定義
-    // ここでは{0, 空文字}の初期値が入っている
-    var todo Todo
-
-    // リクエストボディのJSONをtodoの構造体の型式に変換
-    // ここでは{0, タスク}と送られてきたtaskが入る
-    err := json.NewDecoder(r.Body).Decode(&todo)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusBadRequest)
-        return
-    }
-
-    // todoに格納されたTaskをtososテーブルに挿入
-    res, err := db.Exec("INSERT INTO todos (task) VALUES (?)", todo.Task)
-    if err != nil {
-        panic(err.Error())
-    }
-    
-    // 前のINSERT操作で新たに追加された行のIDを取得し、idに入れる
-    id, err := res.LastInsertId()
-    if err != nil {
-        panic(err.Error())
-    }
-
-    // todoのIDに先ほどのidを入れる
-    todo.ID = int(id)
-
-    // Jsonコードに変換して返却
-    json.NewEncoder(w).Encode(todo)
-}
-
-
-
-
-// type TodoDB struct {
-//     db *sql.DB
-// }
-
-// func NewTodoDB(db *sql.DB) *TodoDB {
-//     return &TodoDB{db: db}
-// }
-
-// func (t *TodoDB) CreateTask(task string) (int64, error) {
-//     res, err := t.db.Exec("INSERT INTO todos (task) VALUES (?)", task)
-//     if err != nil {
-//         return 0, err
-//     }
-
-//     id, err := res.LastInsertId()
-//     if err != nil {
-//         return 0, err
-//     }
-
-//     return id, nil
-// }
-
-// func createTodo(w http.ResponseWriter, r *http.Request) {
-//     w.Header().Set("Content-Type", "application/json")
-
-//     var todo Todo
-//     err := json.NewDecoder(r.Body).Decode(&todo)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusBadRequest)
-//         return
-//     }
-
-//     todoDB := NewTodoDB(db)
-//     id, err := todoDB.CreateTask(todo.Task)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-
-//     todo.ID = int(id)
-//     json.NewEncoder(w).Encode(todo)
-// }
