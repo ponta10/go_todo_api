@@ -6,7 +6,9 @@ import (
     "fmt"
     "log"
     "net/http"
+    // HTTPリクエストを適切なハンドラ関数にルーティングする
     "github.com/gorilla/mux"
+    // importの前の_は、このパッケージの公開関数や変数を直接使用しないが、そのパッケージ内での初期化処理が必要なためにimportしていることを示しています。
     _ "github.com/go-sql-driver/mysql"
 )
 
@@ -19,18 +21,25 @@ var db *sql.DB
 var err error
 
 func main() {
+    // dbとの接続
     db, err = sql.Open("mysql", "user:userpassword@tcp(localhost:3306)/todo_db")
     if err != nil {
         log.Fatal(err)
     }
     defer db.Close()
 
+    // ルーティングの新しいインスタンスを作成
+    // 特定のURLパターンに基づいてリクエストをハンドラ関数にルーティングするルールを設定します。
     router := mux.NewRouter()
 
+    // GETリクエストのURLが "/todos" である場合、getTodos 関数を呼び出してリクエストを処理します
     router.HandleFunc("/todos", getTodos).Methods("GET")
+    // POSTリクエストのURLが "/todos" である場合、 createTodos 関数を呼び出す
     router.HandleFunc("/todos", createTodo).Methods("POST")
     
     fmt.Println("Server starting at :8080")
+    // サーバーが何らかの理由で停止した場合にエラーを返します。
+    // log.Fatalは、引数として与えられたエラーをログに出力し、その後プログラムを終了（os.Exit(1)）します。
     log.Fatal(http.ListenAndServe(":8080", router))
 }
 
