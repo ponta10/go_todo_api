@@ -35,26 +35,34 @@ func main() {
 }
 
 func getTodos(w http.ResponseWriter, r *http.Request) {
+    // Json形式で返す
     w.Header().Set("Content-Type", "application/json")
 
+    // tososをTodo構造体をスライスで返す
     var todos []Todo
 
+    //　resultに全件格納
     result, err := db.Query("SELECT id, task FROM todos")
     if err != nil {
         panic(err.Error())
     }
 
+    // closeするのはDB取得した値の保持に使うのメモリの解放
     defer result.Close()
 
+    // Nextはresultの行が終わるまで繰り返す→forEach的な
     for result.Next() {
+        // 構造体Todoの変数todoを定義　現在の行のデータを一時的に保存する
         var todo Todo
         err := result.Scan(&todo.ID, &todo.Task)
         if err != nil {
             panic(err.Error())
         }
+        // todoをtodosに追加
         todos = append(todos, todo)
     }
 
+    // Jsonコードに変換して返却
     json.NewEncoder(w).Encode(todos)
 }
 
@@ -96,3 +104,46 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 
 
 
+
+// type TodoDB struct {
+//     db *sql.DB
+// }
+
+// func NewTodoDB(db *sql.DB) *TodoDB {
+//     return &TodoDB{db: db}
+// }
+
+// func (t *TodoDB) CreateTask(task string) (int64, error) {
+//     res, err := t.db.Exec("INSERT INTO todos (task) VALUES (?)", task)
+//     if err != nil {
+//         return 0, err
+//     }
+
+//     id, err := res.LastInsertId()
+//     if err != nil {
+//         return 0, err
+//     }
+
+//     return id, nil
+// }
+
+// func createTodo(w http.ResponseWriter, r *http.Request) {
+//     w.Header().Set("Content-Type", "application/json")
+
+//     var todo Todo
+//     err := json.NewDecoder(r.Body).Decode(&todo)
+//     if err != nil {
+//         http.Error(w, err.Error(), http.StatusBadRequest)
+//         return
+//     }
+
+//     todoDB := NewTodoDB(db)
+//     id, err := todoDB.CreateTask(todo.Task)
+//     if err != nil {
+//         http.Error(w, err.Error(), http.StatusInternalServerError)
+//         return
+//     }
+
+//     todo.ID = int(id)
+//     json.NewEncoder(w).Encode(todo)
+// }
