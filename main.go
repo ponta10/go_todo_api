@@ -1,14 +1,15 @@
 package main
 
 import (
-    "database/sql"
-    "fmt"
-    "log"
-    "net/http"
-    "go_todo_api/handler"
-    "go_todo_api/models"
-    "github.com/gorilla/mux"
-    _ "github.com/go-sql-driver/mysql"
+	"database/sql"
+	"fmt"
+	"go_todo_api/controlllers"
+	"go_todo_api/models"
+	"log"
+	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
     // 引数にtodoModelを渡し、処理内でDBとの対話を依頼
     // ここでtodoHandler.goでの記述のおかげで同じ初期設定を使いまわせる
     // そしてtodohandler内の関数を使うことができる
-    todoHandler := handlers.NewTodoHandler(todoModel)
+    todoHandler := controlllers.NewTodoController(todoModel)
 
     router := mux.NewRouter()
     // GET /todosの処理がきたらtodoHandlerのGetTodosを呼び出す

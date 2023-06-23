@@ -1,4 +1,4 @@
-package handlers
+package controlllers
 
 import (
     "encoding/json"
@@ -6,18 +6,18 @@ import (
     "go_todo_api/models"
 )
 
-type TodoHandler struct {
+type TodoController struct {
     Model *models.TodoModel
 }
 
-// TodoHandlerを返す新しいインスタンス生成し初期設定を行う
+// TodoControllerを返す新しいインスタンス生成し初期設定を行う
 // ポインタ型を使うことで同じインスタンスを共有し(同じものの共有)、その状態を変更することができます
-func NewTodoHandler(m *models.TodoModel) *TodoHandler {
-    return &TodoHandler{Model: m}
+func NewTodoController(m *models.TodoModel) *TodoController {
+    return &TodoController{Model: m}
 }
 
 // レシーバーは、メソッドが属している型を指定するためのもので、そのメソッドを呼び出すために必要な情報を提供します
-func (h *TodoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
+func (h *TodoController) GetTodos(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
 
     // h(TodoaHandlerのポインタ)のフィールドModelにアクセス
@@ -33,7 +33,7 @@ func (h *TodoHandler) GetTodos(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(todos)
 }
 
-func (h *TodoHandler) CreateTodo(w http.ResponseWriter, r *http.Request) {
+func (h *TodoController) CreateTodo(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
 
     var todo models.Todo
