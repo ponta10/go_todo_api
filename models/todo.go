@@ -9,22 +9,27 @@ type Todo struct {
     Task string `json:"task"`
 }
 
+// データベースとの接続
 type TodoModel struct {
     DB *sql.DB
 }
 
+//この設計により、TodoModel のインスタンスはデータベースへの接続やクエリの実行などの操作に利用することができます
 func NewTodoModel(DB *sql.DB) *TodoModel {
     return &TodoModel{DB: DB}
 }
 
+// レシーバーは、メソッドが属している型を指定するためのもので、そのメソッドを呼び出すために必要な情報を提供します
 func (m *TodoModel) All() ([]Todo, error) {
     rows, err := m.DB.Query("SELECT id, task FROM todos")
     if err != nil {
         return nil, err
     }
+    // DBの取得・保持はメモリを使うため、closeする
     defer rows.Close()
 
     var todos []Todo
+    // rowsが続く限りスープ(JSのforEach)
     for rows.Next() {
         var todo Todo
         if err := rows.Scan(&todo.ID, &todo.Task); err != nil {
