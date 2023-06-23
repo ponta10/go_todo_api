@@ -14,7 +14,8 @@ type TodoModel struct {
     DB *sql.DB
 }
 
-//この設計により、TodoModel のインスタンスはデータベースへの接続やクエリの実行などの操作に利用することができます
+// この設計により、TodoModel のインスタンスはデータベースへの接続やクエリの実行などの操作に利用することができます
+// ポインタ型を使うことで同じインスタンスを共有し(同じものの共有)、その状態を変更することができます
 func NewTodoModel(DB *sql.DB) *TodoModel {
     return &TodoModel{DB: DB}
 }
@@ -29,7 +30,7 @@ func (m *TodoModel) All() ([]Todo, error) {
     defer rows.Close()
 
     var todos []Todo
-    // rowsが続く限りスープ(JSのforEach)
+    // rowsが続く限りループ(JSのforEach)
     for rows.Next() {
         var todo Todo
         if err := rows.Scan(&todo.ID, &todo.Task); err != nil {

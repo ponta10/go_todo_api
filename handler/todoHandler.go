@@ -11,6 +11,7 @@ type TodoHandler struct {
 }
 
 // TodoHandlerを返す新しいインスタンス生成し初期設定を行う
+// ポインタ型を使うことで同じインスタンスを共有し(同じものの共有)、その状態を変更することができます
 func NewTodoHandler(m *models.TodoModel) *TodoHandler {
     return &TodoHandler{Model: m}
 }
